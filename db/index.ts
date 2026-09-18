@@ -1,8 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { User, SystemSettings, PlanType, UserRole, UserStatus } from '@/types/infoproduct';
 
-const DB_DIR = path.join(process.cwd(), 'data');
+const DB_DIR = process.env.VERCEL ? path.join(os.tmpdir(), 'fabrica_data') : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DB_DIR, 'database.json');
 
 export interface DbSchema {
@@ -129,52 +130,57 @@ const INITIAL_PROD_USER = {
   createdAt: '10/09/2026',
 };
 
-function ensureDbFile(): DbSchema {
-  if (!fs.existsSync(DB_DIR)) {
-    fs.mkdirSync(DB_DIR, { recursive: true });
-  }
+let memoryDbCache: DbSchema | null = null;
 
-  if (!fs.existsSync(DB_FILE)) {
-    const initialData: DbSchema = {
-      users: [INITIAL_MASTER_USER, INITIAL_PROD_USER],
-      products: [],
-      enrollments: [
-        {
-          id: 'enr_demo_1',
-          userId: 'user_prod_1',
-          productId: 'dieta-dos-pontos-descomplicada-2',
-          status: 'ACTIVE',
-          enrolledAt: new Date().toISOString(),
-        }
-      ],
-      progressRecords: [],
-      systemSettings: DEFAULT_SETTINGS,
-    };
-    fs.writeFileSync(DB_FILE, JSON.stringify(initialData, null, 2), 'utf-8');
-    return initialData;
-  }
+function ensureDbFile(): DbSchema {
+  if (memoryDbCache) return memoryDbCache;
+
+  const initialData: DbSchema = {
+    users: [INITIAL_MASTER_USER, INITIAL_PROD_USER],
+    products: [],
+    enrollments: [
+      {
+        id: 'enr_demo_1',
+        userId: 'user_prod_1',
+        productId: 'dieta-dos-pontos-descomplicada-2',
+        status: 'ACTIVE',
+        enrolledAt: new Date().toISOString(),
+      },
+    ],
+    progressRecords: [],
+    systemSettings: DEFAULT_SETTINGS,
+  };
 
   try {
+    if (!fs.existsSync(DB_DIR)) {
+      fs.mkdirSync(DB_DIR, { recursive: true });
+    }
+
+    if (!fs.existsSync(DB_FILE)) {
+      fs.writeFileSync(DB_FILE, JSON.stringify(initialData, null, 2), 'utf-8');
+      memoryDbCache = initialData;
+      return initialData;
+    }
+
     const raw = fs.readFileSync(DB_FILE, 'utf-8');
-    return JSON.parse(raw) as DbSchema;
+    memoryDbCache = JSON.parse(raw) as DbSchema;
+    return memoryDbCache;
   } catch (e) {
-    const fallback: DbSchema = {
-      users: [INITIAL_MASTER_USER, INITIAL_PROD_USER],
-      products: [],
-      enrollments: [],
-      progressRecords: [],
-      systemSettings: DEFAULT_SETTINGS,
-    };
-    fs.writeFileSync(DB_FILE, JSON.stringify(fallback, null, 2), 'utf-8');
-    return fallback;
+    memoryDbCache = initialData;
+    return memoryDbCache;
   }
 }
 
 function writeDb(data: DbSchema) {
-  if (!fs.existsSync(DB_DIR)) {
-    fs.mkdirSync(DB_DIR, { recursive: true });
+  memoryDbCache = data;
+  try {
+    if (!fs.existsSync(DB_DIR)) {
+      fs.mkdirSync(DB_DIR, { recursive: true });
+    }
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (e) {
+    // Ignora silenciosamente erros de escrita no sistema de arquivos em ambiente serverless
   }
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
 }
 
 // Data Access Layer (DAL) com persistência confiável em disco no servidor
