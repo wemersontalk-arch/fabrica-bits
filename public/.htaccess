@@ -1,0 +1,23 @@
+# Redirecionamento e Roteamento de URLs para Hostinger / Apache (Next.js Static Export)
+Options -MultiViews
+RewriteEngine On
+
+# 1. Rota de Vendas Dinâmica: Redirecionar /vendas/* para vendas.html passando a rota do curso
+RewriteCond %{REQUEST_URI} ^/vendas/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^vendas/(.*)$ vendas.html?p=$1 [L,QSA]
+
+# 2. Servir arquivos estáticos ou diretórios físicos existentes
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# 3. Tentar servir o arquivo .html correspondente se existir
+RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+RewriteRule ^(.*)$ $1.html [L]
+
+# 4. Fallback SPA genérico para index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]

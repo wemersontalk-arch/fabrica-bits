@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #020617;
+  --foreground: #f8fafc;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  overflow-x: hidden;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.35s ease-out forwards;
+}
+
+/* Perfect Print CSS for Diagrammed PDF Export (A4 Editorial) */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 18mm 15mm 20mm 15mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Oculta navegação, botões, modais e casca da dashboard */
+  .no-print,
+  header,
+  nav,
+  aside,
+  button,
+  footer,
+  .sticky,
+  [role="dialog"] {
+    display: none !important;
+  }
+
+  /* Exibe o documento impresso em A4 */
+  .print\:block {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Quebra obrigatória antes de cada novo módulo */
+  .capitulo-modulo {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+
+  /* Evitar que blocos de destaque se rompam entre folhas */
+  .card-evitar-quebra,
+  .mentor-box,
+  .figura-container,
+  .checklist-container,
+  .quiz-container,
+  .gabarito-container {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Tratamento de órfãs e viúvas */
+  h1, h2, h3, h4, p {
+    orphans: 3;
+    widows: 3;
+  }
+
+  h1, h2, h3, h4 {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+}
