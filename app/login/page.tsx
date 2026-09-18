@@ -13,11 +13,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
-    const res = login(email, password);
+    const res = await login(email, password);
     if (!res.success) {
       setErrorMsg(res.error || 'Erro ao realizar login.');
       return;

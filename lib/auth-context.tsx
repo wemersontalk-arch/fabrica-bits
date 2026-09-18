@@ -15,7 +15,7 @@ interface AuthContextType {
   setShowUpgradeModal: (show: boolean) => void;
   incrementGenerationCount: () => void;
   recordTelemetry: (data: Partial<LlmTelemetryMetrics>) => void;
-  login: (email: string, password?: string) => { success: boolean; error?: string };
+  login: (email: string, password?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 
   registerFreeBeta: (name: string, email: string) => User;
@@ -246,22 +246,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = (email: string, password?: string): { success: boolean; error?: string } => {
+  const login = async (email: string, password?: string): Promise<{ success: boolean; error?: string }> => {
     const cleanEmail = email.trim().toLowerCase();
 
     // Sincroniza sessão no servidor injetando cookie httpOnly
-    fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: cleanEmail, password }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.user) {
-          saveCurrentUser(data.user);
-        }
-      })
-      .catch(() => {});
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, password }),
+      });
+      const data = await res.json();
+      if (data.success && data.user) {
+        saveCurrentUser(data.user);
+        return { success: true };
+      }
+      if (data.error) {
+        return { success: false, error: data.error };
+      }
+    } catch (e) {}
 
     const currentUsers = getLatestUsers();
 
