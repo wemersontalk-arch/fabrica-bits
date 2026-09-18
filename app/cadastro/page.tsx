@@ -8,11 +8,18 @@ import { PlanType, User } from '@/types/infoproduct';
 import { Sparkles, Crown, CheckCircle2, UserPlus, Clock, MessageCircle, ShieldCheck } from 'lucide-react';
 
 export default function CadastroPage() {
-  const { registerFreeBeta, login } = useAuth();
+  const { registerFreeBeta, systemSettings } = useAuth();
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [createdBetaUser, setCreatedBetaUser] = useState<User | null>(null);
+
+  const companyInfo = systemSettings?.companyInfo || {
+    companyName: 'UniversoBits',
+    supportEmail: 'suporte@universobits.com.br',
+    whatsappContact: '',
+    enableWhatsappActivation: false,
+  };
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +28,11 @@ export default function CadastroPage() {
     const registered = registerFreeBeta(name.trim(), email.trim());
     setCreatedBetaUser(registered);
   };
+
+  const whatsappClean = companyInfo.whatsappContact ? companyInfo.whatsappContact.replace(/\D/g, '') : '';
+  const whatsappUrl = `https://api.whatsapp.com/send?phone=55${whatsappClean}&text=${encodeURIComponent(
+    `Olá! Me cadastrei no sistema com o e-mail ${createdBetaUser?.email} e gostaria de solicitar a liberação do meu acesso.`
+  )}`;
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center p-4">
@@ -56,17 +68,24 @@ export default function CadastroPage() {
             </div>
 
             <div className="space-y-3 pt-2">
-              <a
-                href={`https://api.whatsapp.com/send?phone=5511999999999&text=${encodeURIComponent(
-                  `Olá! Me cadastrei na fase beta do Infoproduct Engine AI com o e-mail ${createdBetaUser.email} e gostaria de solicitar a liberação do meu acesso.`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg transition-transform hover:scale-[1.02]"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>Solicitar Ativação via WhatsApp</span>
-              </a>
+              {companyInfo.enableWhatsappActivation && whatsappClean ? (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg transition-transform hover:scale-[1.02]"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Solicitar Ativação via WhatsApp</span>
+                </a>
+              ) : (
+                <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 space-y-1">
+                  <p className="font-bold text-amber-400">📧 Suporte & Atendimento</p>
+                  <p className="text-[11px] text-slate-400">
+                    Sua conta está na fila de análise. Se precisar de ajuda, envie um e-mail para: <strong className="text-slate-200">{companyInfo.supportEmail}</strong>
+                  </p>
+                </div>
+              )}
 
               <Link
                 href="/login"
@@ -74,7 +93,6 @@ export default function CadastroPage() {
               >
                 <span>Ir para a Página de Login</span>
               </Link>
-
             </div>
           </div>
         ) : (
@@ -97,7 +115,7 @@ export default function CadastroPage() {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Ex: Amanda Ramos"
+                    placeholder="Digite seu nome completo"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
                   />
                 </div>

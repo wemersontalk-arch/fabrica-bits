@@ -309,6 +309,13 @@ export interface LlmTelemetryMetrics {
   averageLocalLatencyMs: number;
 }
 
+export interface CompanyInfoConfig {
+  companyName: string;
+  supportEmail: string;
+  whatsappContact: string;
+  enableWhatsappActivation: boolean;
+}
+
 export interface SystemSettings {
   gateways: {
     asaas: PaymentGatewayConfig;
@@ -322,4 +329,5 @@ export interface SystemSettings {
   pricing: PlanPricingConfig;
   planFeatureFlags: PlanFeatureFlags;
   telemetry: LlmTelemetryMetrics;
+  companyInfo?: CompanyInfoConfig;
 }

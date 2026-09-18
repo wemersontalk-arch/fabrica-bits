@@ -105,7 +105,7 @@ export default function Home() {
       </main>
 
       <footer className="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
-        Fábrica Bits © 2026 • Plataforma SaaS de Infoprodutos
+        Fábrica Bits © 2026 • É um sistema da UniversoBits.com.br
       </footer>
     </div>
   );

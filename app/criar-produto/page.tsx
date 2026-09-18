@@ -17,6 +17,7 @@ import { Clock, MessageCircle, Crown } from 'lucide-react';
 export default function CriarProdutoPage() {
   const {
     user,
+    systemSettings,
     monthlyGenerationsCount,
     incrementGenerationCount,
     setShowMonthlyLimitModal,
@@ -116,6 +117,18 @@ export default function CriarProdutoPage() {
     );
   }
 
+  const companyInfo = systemSettings?.companyInfo || {
+    companyName: 'UniversoBits',
+    supportEmail: 'suporte@universobits.com.br',
+    whatsappContact: '',
+    enableWhatsappActivation: false,
+  };
+
+  const whatsappClean = companyInfo.whatsappContact ? companyInfo.whatsappContact.replace(/\D/g, '') : '';
+  const whatsappUrl = `https://api.whatsapp.com/send?phone=55${whatsappClean}&text=${encodeURIComponent(
+    `Olá! Meu e-mail é ${user.email} e gostaria de solicitar a aprovação do meu acesso à fase beta.`
+  )}`;
+
   if (user && user.status === 'pending_beta') {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
@@ -137,17 +150,24 @@ export default function CriarProdutoPage() {
             </div>
 
             <div className="space-y-3 pt-2">
-              <a
-                href={`https://api.whatsapp.com/send?phone=5511999999999&text=${encodeURIComponent(
-                  `Olá! Meu e-mail é ${user.email} e gostaria de solicitar a aprovação do meu acesso à fase beta.`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg transition-transform hover:scale-[1.02]"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>Solicitar Aprovação no WhatsApp</span>
-              </a>
+              {companyInfo.enableWhatsappActivation && whatsappClean ? (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg transition-transform hover:scale-[1.02]"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Solicitar Aprovação no WhatsApp</span>
+                </a>
+              ) : (
+                <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 space-y-1 text-left">
+                  <p className="font-bold text-amber-400">📧 Suporte & Atendimento</p>
+                  <p className="text-[11px] text-slate-400">
+                    Sua conta está na fila de análise. Se precisar de ajuda, envie um e-mail para: <strong className="text-slate-200">{companyInfo.supportEmail}</strong>
+                  </p>
+                </div>
+              )}
 
               <Link
                 href="/login"

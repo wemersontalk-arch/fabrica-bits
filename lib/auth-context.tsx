@@ -144,6 +144,12 @@ const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
     estimatedSavingsUsd: 42.50,
     averageLocalLatencyMs: 38,
   },
+  companyInfo: {
+    companyName: 'UniversoBits',
+    supportEmail: 'suporte@universobits.com.br',
+    whatsappContact: '5511999999999',
+    enableWhatsappActivation: false,
+  },
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -241,6 +247,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateSystemSettings = (data: Partial<SystemSettings>) => {
     const updated = { ...systemSettings, ...data };
     setSystemSettings(updated);
+
+    fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).catch(() => {});
+
     if (typeof window !== 'undefined') {
       localStorage.setItem('infoproduct_system_settings', JSON.stringify(updated));
     }
@@ -323,6 +336,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       createdAt: new Date().toLocaleDateString('pt-BR'),
     };
 
+    fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'register', name, email, role: 'PRODUTOR_INICIANTE', plan: 'iniciante' }),
+    }).catch(() => {});
+
     saveUsersList([...currentUsers, newUser]);
     saveCurrentUser(newUser);
     return newUser;
@@ -364,6 +383,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const approveBetaUser = (userId: string) => {
+    fetch(`/api/users/${userId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'active' }),
+    }).catch(() => {});
+
     const updated = usersList.map((u) => (u.id === userId ? { ...u, status: 'active' as UserStatus } : u));
     saveUsersList(updated);
     if (user?.id === userId) {
@@ -372,28 +397,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const toggleUserBlock = (userId: string) => {
+    const targetUser = usersList.find((u) => u.id === userId);
+    const nextStatus = targetUser?.status === 'blocked' ? 'active' : 'blocked';
+    fetch(`/api/users/${userId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: nextStatus }),
+    }).catch(() => {});
+
     const updated = usersList.map((u) =>
-      u.id === userId ? { ...u, status: (u.status === 'blocked' ? 'active' : 'blocked') as UserStatus } : u
+      u.id === userId ? { ...u, status: nextStatus as UserStatus } : u
     );
     saveUsersList(updated);
     if (user?.id === userId) {
-      saveCurrentUser({ ...user, status: user.status === 'blocked' ? 'active' : 'blocked' });
+      saveCurrentUser({ ...user, status: nextStatus as UserStatus });
     }
   };
 
   const toggleUserExempt = (userId: string) => {
-    const updated = usersList.map((u) => (u.id === userId ? { ...u, isExempt: !u.isExempt } : u));
+    const targetUser = usersList.find((u) => u.id === userId);
+    const nextExempt = !targetUser?.isExempt;
+    fetch(`/api/users/${userId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isExempt: nextExempt }),
+    }).catch(() => {});
+
+    const updated = usersList.map((u) => (u.id === userId ? { ...u, isExempt: nextExempt } : u));
     saveUsersList(updated);
     if (user?.id === userId) {
-      saveCurrentUser({ ...user, isExempt: !user.isExempt });
+      saveCurrentUser({ ...user, isExempt: nextExempt });
     }
   };
 
   const migrateUserPlan = (userId: string, newPlan: PlanType) => {
-    const updated = usersList.map((u) => (u.id === userId ? { ...u, plan: newPlan } : u));
+    fetch(`/api/users/${userId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: newPlan, status: 'active' }),
+    }).catch(() => {});
+
+    const updated = usersList.map((u) => (u.id === userId ? { ...u, plan: newPlan, status: 'active' as UserStatus } : u));
     saveUsersList(updated);
     if (user?.id === userId) {
-      saveCurrentUser({ ...user, plan: newPlan });
+      saveCurrentUser({ ...user, plan: newPlan, status: 'active' });
     }
   };
 

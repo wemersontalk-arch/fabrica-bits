@@ -63,7 +63,7 @@ export default function AdminDashboardPage() {
     deleteUser,
   } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'payments' | 'integrations' | 'health' | 'waitlist'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'payments' | 'integrations' | 'company' | 'health' | 'waitlist'>('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending_beta' | 'active' | 'blocked' | 'exempt'>('all');
   const [roleFilter, setRoleFilter] = useState<string>('all');
@@ -235,7 +235,7 @@ export default function AdminDashboardPage() {
           </span>
           <h1 className="text-2xl font-extrabold text-white">Acesso Restrito ao Administrador</h1>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Você precisa estar logado com a conta oficial de <strong>Master Admin</strong> (`master@infoproductengine.ai`) para acessar este centro de controle executivo.
+            Você precisa estar logado com a conta oficial de <strong>Master Admin</strong> (<code>master@infoproductengine.ai</code>) para acessar este centro de controle executivo.
           </p>
         </div>
         <Link
@@ -311,6 +311,7 @@ export default function AdminDashboardPage() {
           { id: 'users', label: `👥 Gestão de Usuários (${usersList.length})`, icon: Users, badge: pendingBetaCount },
           { id: 'payments', label: '💳 Pagamentos & Mensalidades', icon: CreditCard },
           { id: 'integrations', label: '🔑 Login Google & APIs', icon: Key },
+          { id: 'company', label: '🏢 Dados da Empresa & Suporte', icon: Building2 },
           { id: 'health', label: '🟢 Telemetria & Saúde do Sistema', icon: Server },
           { id: 'waitlist', label: `⏳ Lista de Espera (${waitlist.length})`, icon: Clock },
         ].map((tab) => {
@@ -1013,7 +1014,7 @@ export default function AdminDashboardPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-slate-400 font-semibold">Chave OpenAI (`sk-proj-...`)</label>
+                  <label className="text-slate-400 font-semibold">Chave OpenAI (sk-proj-...)</label>
                   <input
                     type="password"
                     value={settingsForm.apiIntegrations?.openaiKey || ''}
@@ -1044,6 +1045,133 @@ export default function AdminDashboardPage() {
                     <option value="gpt-4-turbo">GPT-4 Turbo</option>
                     <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Econômico)</option>
                   </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      )}
+
+      {/* TAB: DADOS DA EMPRESA & SUPORTE */}
+      {activeTab === 'company' && (
+        <form onSubmit={handleSaveSettings} className="space-y-6">
+          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 space-y-6 shadow-xl">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-amber-400" /> Dados da Empresa & Configuração de Suporte
+                </h3>
+                <p className="text-xs text-slate-400">Configure as informações institucionais, e-mail de suporte e ativação de WhatsApp no login</p>
+              </div>
+              <button
+                type="submit"
+                className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow flex items-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                <span>Salvar Dados da Empresa</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
+                <label className="text-xs font-bold text-slate-200">Nome Fantasia / Razão Social</label>
+                <input
+                  type="text"
+                  value={settingsForm.companyInfo?.companyName || ''}
+                  onChange={(e) =>
+                    setSettingsForm({
+                      ...settingsForm,
+                      companyInfo: {
+                        companyName: e.target.value,
+                        supportEmail: settingsForm.companyInfo?.supportEmail || '',
+                        whatsappContact: settingsForm.companyInfo?.whatsappContact || '',
+                        enableWhatsappActivation: settingsForm.companyInfo?.enableWhatsappActivation || false,
+                      },
+                    })
+                  }
+                  placeholder="Ex: UniversoBits"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs font-semibold"
+                />
+                <p className="text-[11px] text-slate-400">Nome da empresa exibido em comunicações e rodapés institucionais.</p>
+              </div>
+
+              <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
+                <label className="text-xs font-bold text-slate-200">E-mail Oficial de Suporte</label>
+                <input
+                  type="email"
+                  value={settingsForm.companyInfo?.supportEmail || ''}
+                  onChange={(e) =>
+                    setSettingsForm({
+                      ...settingsForm,
+                      companyInfo: {
+                        companyName: settingsForm.companyInfo?.companyName || '',
+                        supportEmail: e.target.value,
+                        whatsappContact: settingsForm.companyInfo?.whatsappContact || '',
+                        enableWhatsappActivation: settingsForm.companyInfo?.enableWhatsappActivation || false,
+                      },
+                    })
+                  }
+                  placeholder="suporte@universobits.com.br"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs font-semibold"
+                />
+                <p className="text-[11px] text-slate-400">Canal de suporte ao cliente e respostas automáticas do sistema.</p>
+              </div>
+
+              <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
+                <label className="text-xs font-bold text-slate-200">WhatsApp de Contato / Atendimento (Com DDD)</label>
+                <input
+                  type="text"
+                  value={settingsForm.companyInfo?.whatsappContact || ''}
+                  onChange={(e) =>
+                    setSettingsForm({
+                      ...settingsForm,
+                      companyInfo: {
+                        companyName: settingsForm.companyInfo?.companyName || '',
+                        supportEmail: settingsForm.companyInfo?.supportEmail || '',
+                        whatsappContact: e.target.value,
+                        enableWhatsappActivation: settingsForm.companyInfo?.enableWhatsappActivation || false,
+                      },
+                    })
+                  }
+                  placeholder="Ex: 5511999999999"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs font-mono font-semibold"
+                />
+                <p className="text-[11px] text-slate-400">Número utilizado no botão de WhatsApp da tela de aguardo/liberação.</p>
+              </div>
+
+              <div className="p-5 bg-gradient-to-r from-slate-950 to-indigo-950 border border-slate-800 rounded-2xl space-y-3 flex flex-col justify-between">
+                <div>
+                  <label className="text-xs font-bold text-amber-300 flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-emerald-400" /> Solicitar Ativação via WhatsApp na Tela de Aguardo
+                  </label>
+                  <p className="text-[11px] text-slate-300 mt-1">
+                    Ative este recurso apenas se o WhatsApp de suporte estiver configurado. Quando desativado, o botão "Solicitar Ativação via WhatsApp" será ocultado na tela de login/aguardo.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settingsForm.companyInfo?.enableWhatsappActivation || false}
+                      onChange={(e) =>
+                        setSettingsForm({
+                          ...settingsForm,
+                          companyInfo: {
+                            companyName: settingsForm.companyInfo?.companyName || '',
+                            supportEmail: settingsForm.companyInfo?.supportEmail || '',
+                            whatsappContact: settingsForm.companyInfo?.whatsappContact || '',
+                            enableWhatsappActivation: e.target.checked,
+                          },
+                        })
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500" />
+                  </label>
+                  <span className="text-xs font-bold text-slate-200">
+                    {settingsForm.companyInfo?.enableWhatsappActivation ? '🟢 Ativado (Exibe botão WhatsApp no cadastro)' : '🔴 Desativado (Esconde botão WhatsApp)'}
+                  </span>
                 </div>
               </div>
             </div>

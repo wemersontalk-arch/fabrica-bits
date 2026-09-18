@@ -100,6 +100,12 @@ const DEFAULT_SETTINGS: SystemSettings = {
     estimatedSavingsUsd: 42.50,
     averageLocalLatencyMs: 38,
   },
+  companyInfo: {
+    companyName: 'UniversoBits',
+    supportEmail: 'suporte@universobits.com.br',
+    whatsappContact: '5511999999999',
+    enableWhatsappActivation: false,
+  },
 };
 
 const INITIAL_MASTER_USER = {
